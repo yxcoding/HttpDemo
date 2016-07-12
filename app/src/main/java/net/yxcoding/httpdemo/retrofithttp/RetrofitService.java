@@ -10,6 +10,7 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
+import rx.Observable;
 
 /**
  * User: yxfang
@@ -26,4 +27,7 @@ public interface RetrofitService
 
     @POST("onebox/news/query")
     Call<Result<List<News>>> getNewsListByPost(@Query("key") String key, @Query("q") String q);
+
+    @POST("onebox/news/query")
+    Observable<Result<List<News>>> newsList(@Query("key") String key, @Query("q") String q);
 }

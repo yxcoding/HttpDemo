@@ -2,6 +2,7 @@ package net.yxcoding.httpdemo.retrofithttp;
 
 import retrofit2.Call;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
@@ -37,6 +38,8 @@ public class RetrofitUtil
                 .baseUrl("http://op.juhe.cn/")
                 // 添加格式转换器
                 .addConverterFactory(GsonConverterFactory.create())
+                // 添加RxJava 适配模式
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
     }
 

@@ -30,6 +30,11 @@ import cz.msebera.android.httpclient.Header;
 import okhttp3.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener
 {
@@ -116,8 +121,83 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 RetrofitUtil.getInstance().sendRequest(
                         call, retrofitCallback());
                 break;
-            // Android Asynchronous Http Client
+            // RxJava + Retrofit
             case 4:
+                RetrofitUtil.getInstance().createService(RetrofitService.class).newsList("5173fa20d74cf85747dcf6f4636856af", "\"\"")
+                        .subscribeOn(Schedulers.io())
+                        .doOnSubscribe(new Action0()
+                        {
+                            @Override
+                            public void call()
+                            {
+                                showLoadingDialog();
+                            }
+                        })
+                        .subscribeOn(AndroidSchedulers.mainThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .map(new Func1<Result<List<News>>, Result<List<News>>>()
+                        {
+                            @Override
+                            public Result<List<News>> call(Result<List<News>> result)
+                            {
+                                if (Result.TOKEN_CODE == result.getError_code())
+                                {
+                                    // 跳转到用户登录页面
+                                    //startActivity(new Intent(AppManager.getInstance().currentActivity(), LoginActivity.class));
+                                    setResult(false, "token 过期");
+                                    return null;
+                                }
+                                else
+                                {
+                                    return result;
+                                }
+                            }
+                        })
+                        .subscribe(new Subscriber<Result<List<News>>>()
+                        {
+                            @Override
+                            public void onCompleted()
+                            {
+                                closeLoadingDialog();
+                            }
+
+                            @Override
+                            public void onError(Throwable e)
+                            {
+                                closeLoadingDialog();
+                                setResult(false, e.toString());
+                            }
+
+                            @Override
+                            public void onNext(Result<List<News>> result)
+                            {
+                                if (result == null)
+                                {
+                                    return;
+                                }
+
+                                if (result.getError_code() == 0)
+                                {
+                                    List<News> list = result.getResult();
+                                    if (list != null && !list.isEmpty())
+                                    {
+                                        StringBuffer sb = new StringBuffer();
+                                        for (News news : list)
+                                        {
+                                            sb.append(news.getFull_title() + "\n");
+                                        }
+                                        setResult(true, sb.toString());
+                                    }
+                                }
+                                else
+                                {
+                                    setResult(true, result.getReason());
+                                }
+                            }
+                        });
+                break;
+            // Android Asynchronous Http Client
+            case 5:
                 if (get)
                 {
                     AsynHttpUtil.getInstance().sendGetRequest(this, API_GET, asynCallback());
@@ -255,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
     /**
      * 获取Android Asynchronous Http Client 异步请求回调接口
-     * <p/>
+     * <p>
      * 也可返回 JsonHttpResponseHandler 接口回调 自动将响应结果解析为json格式
      *
      * @return

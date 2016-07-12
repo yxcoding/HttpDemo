@@ -27,9 +27,14 @@
             android:text="Volley"/>
 
         <RadioButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Retrofit"/>
+
+        <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Retrofit"/>
+            android:text="RxJava + Retrofit"/>
 
         <RadioButton
             android:layout_width="wrap_content"
